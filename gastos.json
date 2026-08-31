@@ -1,0 +1,12 @@
+[
+    {
+        "descricao": "Sabonete",
+        "valor": 2.0,
+        "categoria": "Higiene"
+    },
+    {
+        "descricao": "Carne",
+        "valor": 52.5,
+        "categoria": "Alimento"
+    }
+]
