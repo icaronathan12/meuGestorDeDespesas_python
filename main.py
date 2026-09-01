@@ -5,6 +5,7 @@ def exibir_menu():
     print("1. Adicionar Gasto.")
     print("2. Listar todo os gastos.")
     print("3. Ver total gasto")
+    print("4. Ver total por categoria")
     print("0. Sair")
     print("=============================\n")
     
@@ -26,6 +27,9 @@ def main():
                 funcoes.listar_gastos()
             case "3":
                 funcoes.somar_total()
+            case "4":
+                categoria = input("Qual categoria deseja procurar? ")
+                funcoes.total_categoria(categoria)
             case "0":
                 print("\nSaindo do programa.")
                 break
@@ -33,7 +37,3 @@ def main():
                 print("\nOpção Inválida, pcr") #O "_" funciona como o default, ele captura qualquer coisa que não tenha caído nos casos anteriores, ou seja, qualquer outra coisa que o usuário digita.
 
 main()
-                
-    
-   
-    

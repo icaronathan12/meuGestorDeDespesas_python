@@ -46,13 +46,35 @@ def somar_total():
     gastos = carregar_gastos()
     
     if not gastos:
-        print("Sem gastos ainda!")
+        print("\nNenhum gasto registrado até agora.")
         return
 
     total = 0
     
-    for somat in gastos:
-        total += somat['valor']
+    for gasto in gastos:
+        total += gasto['valor']
     
     print(f"\nTotal de gastos acumulados: R$ {total:.2f} ")
-
+    
+def total_categoria(categoria_busca):
+    gastos = carregar_gastos()
+    
+    if not gastos:
+        print("\nNenhum gasto registrado até agora.")
+        return
+    
+    encontrados = False
+    valor_categoria = 0
+    
+    print("\n===== Gastos por Categoria =====")
+    for gasto in gastos:
+        if gasto['categoria'].strip().lower() == categoria_busca.strip().lower():
+            print(f"{gasto['descricao']} / R$ {gasto['valor']:.2f}")
+            valor_categoria += gasto['valor']
+            encontrados = True
+        
+    if not encontrados:
+        print(f"A categoria {categoria_busca.upper()} ainda não apresenta nenhum gasto!")
+    else:
+        print("========================================")
+        print(f"Subtotal da categoria {categoria_busca.upper()}: R$ {valor_categoria:.2f}")
