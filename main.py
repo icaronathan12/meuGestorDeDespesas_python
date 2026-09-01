@@ -4,7 +4,7 @@ def exibir_menu():
     print("\n ===GERENCIADOR===")
     print("1. Adicionar Gasto.")
     print("2. Listar todo os gastos.")
-    print("3. Vert total gasto")
+    print("3. Ver total gasto")
     print("0. Sair")
     print("=============================\n")
     
@@ -25,7 +25,7 @@ def main():
             case "2":
                 funcoes.listar_gastos()
             case "3":
-                print("\n-Aqui é onde vai somar tudo e mostrar o gasto total")
+                funcoes.somar_total()
             case "0":
                 print("\nSaindo do programa.")
                 break

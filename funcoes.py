@@ -41,3 +41,18 @@ def listar_gastos():
     for i, gasto in enumerate(gastos, 1):
         print(f"{i}. {gasto['descricao']} / R${gasto['valor']:.2f} / {gasto['categoria']}")
         print("==============================")
+    
+def somar_total():
+    gastos = carregar_gastos()
+    
+    if not gastos:
+        print("Sem gastos ainda!")
+        return
+
+    total = 0
+    
+    for somat in gastos:
+        total += somat['valor']
+    
+    print(f"\nTotal de gastos acumulados: R$ {total:.2f} ")
+
