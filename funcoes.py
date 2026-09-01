@@ -78,3 +78,30 @@ def total_categoria(categoria_busca):
     else:
         print("========================================")
         print(f"Subtotal da categoria {categoria_busca.upper()}: R$ {valor_categoria:.2f}")
+        
+def remover_gasto():
+    gastos = carregar_gastos()
+    
+    if not gastos:
+        print("\nNenhum gasto registrado até agora.")
+        return
+
+    listar_gastos()
+    
+    try:
+        escolha = int(input("\nDigite o número do gasto que deseja remover: "))
+        index = escolha - 1
+
+        if 0 <= index < len(gastos):
+            gasto_removido = gastos.pop(index)
+            salvar_gastos(gastos)
+            print(f"\nGasto {gasto_removido['descricao'].upper()} removido com sucesso!")
+        
+        else:
+            print("\nNúmero inválido. Tente novamente.")
+    
+    except ValueError:
+        print("\nDigite um número válido!")
+
+
+        

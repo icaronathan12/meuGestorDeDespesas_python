@@ -8,10 +8,5 @@
         "descricao": "Carne",
         "valor": 52.5,
         "categoria": "Alimento"
-    },
-    {
-        "descricao": "ovos",
-        "valor": 30.0,
-        "categoria": "Alimento"
     }
 ]

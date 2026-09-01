@@ -6,6 +6,7 @@ def exibir_menu():
     print("2. Listar todo os gastos.")
     print("3. Ver total gasto")
     print("4. Ver total por categoria")
+    print("5. Remover gasto")
     print("0. Sair")
     print("=============================\n")
     
@@ -17,10 +18,10 @@ def main():
     
         match opcao:
             case "1":
-                print("\n-Novo Gasto-")
-                descricao = input("O que você comprou?")
+                print("\n=====Novo Gasto=====")
+                descricao = input("O que você comprou? ").capitalize()
                 valor = float(input("Qual o valor? R$ "))
-                categoria = input("Qual a categoria? ")
+                categoria = input("Qual a categoria? ").capitalize()
                 
                 funcoes.adicionar_gasto(descricao, valor, categoria)
             case "2":
@@ -30,6 +31,8 @@ def main():
             case "4":
                 categoria = input("Qual categoria deseja procurar? ")
                 funcoes.total_categoria(categoria)
+            case "5":
+                funcoes.remover_gasto()
             case "0":
                 print("\nSaindo do programa.")
                 break
