@@ -13,5 +13,10 @@
         "descricao": "Shampoo",
         "valor": 15.0,
         "categoria": "Higiene"
+    },
+    {
+        "descricao": "Picanha",
+        "valor": 2000.0,
+        "categoria": "Alimento"
     }
 ]

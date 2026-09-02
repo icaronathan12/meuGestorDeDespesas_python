@@ -1,5 +1,5 @@
-import json
 import os
+import json
 
 ARQUIVO  = "gastos.json"
 
@@ -169,3 +169,6 @@ def gerar_relatorio():
         f.write("=" * 30 + "\n")
     
     print(f"Relatório exportado para '{nome_arquivo}'")
+    
+def limpar_tela():
+    os.system('cls' if os.name == 'nt' else 'clear')

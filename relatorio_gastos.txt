@@ -4,6 +4,7 @@
 1. Carne / R$52.50 / Categoria: Alimento
 2. Celular / R$2300.00 / Categoria: Eletrônicos
 3. Shampoo / R$15.00 / Categoria: Higiene
+4. Picanha / R$2000.00 / Categoria: Alimento
 ==============================
-Total Geral: 2367.50
+Total Geral: 4367.50
 ==============================
