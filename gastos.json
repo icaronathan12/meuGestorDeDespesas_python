@@ -18,5 +18,15 @@
         "descricao": "Picanha",
         "valor": 2000.0,
         "categoria": "Alimento"
+    },
+    {
+        "descricao": "Carro",
+        "valor": 100000.0,
+        "categoria": "Transporte"
+    },
+    {
+        "descricao": "Carro",
+        "valor": 100000.0,
+        "categoria": "Transporte"
     }
 ]
