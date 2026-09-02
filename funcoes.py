@@ -1,174 +1,131 @@
 import os
 import json
 
-ARQUIVO  = "gastos.json"
+ARQUIVO = "gastos.json"
 
 def carregar_gastos():
-    #Se o arquivo não existir, retorna uma lista vazia
     if not os.path.exists(ARQUIVO):
         return []
-    
-    #Se existir, abre e lê os dados
     with open(ARQUIVO, "r", encoding="utf-8") as f:
         return json.load(f)
 
 def salvar_gastos(gastos):
-    #Salva a lista formatada no arquivo JSON
     with open(ARQUIVO, "w", encoding="utf-8") as f:
         json.dump(gastos, f, indent=4, ensure_ascii=False)
-    
+
+# MUDANÇA 1: Troca de print por return
 def adicionar_gasto(descricao, valor, categoria):
     gastos = carregar_gastos()
-    
     novo_gasto = {
-        "descricao": descricao,
-        "valor": valor,
-        "categoria": categoria
+        "descricao": descricao.capitalize(),
+        "valor": float(valor),
+        "categoria": categoria.capitalize()
     }
-
     gastos.append(novo_gasto)
     salvar_gastos(gastos)
-    print(f"\n Gasto '{descricao}' de R${valor} adicionado com sucesso!")
+    return f"✅ Gasto '{novo_gasto['descricao']}' de R$ {novo_gasto['valor']:.2f} adicionado com sucesso!"
 
+# MUDANÇA 2: Concatenação das linhas para retornar um texto único
 def listar_gastos():
     gastos = carregar_gastos()
-    
     if not gastos:
-        print("\nNenhum gasto registrado até agora.")
-        return
+        return "Nenhum gasto registrado até agora."
     
-    print("\n===== LISTA DE GASTOS =====")
+    linhas = ["📋 *LISTA DE GASTOS:*"]
     for i, gasto in enumerate(gastos, 1):
-        print(f"{i}. {gasto['descricao']} / R${gasto['valor']:.2f} / {gasto['categoria']}")
-        print("==============================")
+        linhas.append(f"{i}. {gasto['descricao']} | R$ {gasto['valor']:.2f} | {gasto['categoria']}")
     
+    return "\n".join(linhas)
+
+# MUDANÇA 3: Tratamento de lista vazia direto no return
 def somar_total():
     gastos = carregar_gastos()
-    
     if not gastos:
-        print("\nNenhum gasto registrado até agora.")
-        return
+        return "Nenhum gasto registrado até agora."
+    
+    total = sum(gasto['valor'] for gasto in gastos)
+    return f"💰 *Total acumulado:* R$ {total:.2f}"
 
-    total = 0
-    
-    for gasto in gastos:
-        total += gasto['valor']
-    
-    print(f"\nTotal de gastos acumulados: R$ {total:.2f} ")
-    
+# MUDANÇA 4: Filtro acumulando texto em vez de múltiplos prints
 def total_categoria(categoria_busca):
     gastos = carregar_gastos()
-    
     if not gastos:
-        print("\nNenhum gasto registrado até agora.")
-        return
+        return "Nenhum gasto registrado até agora."
     
-    encontrados = False
-    valor_categoria = 0
+    filtrados = [g for g in gastos if g['categoria'].strip().lower() == categoria_busca.strip().lower()]
     
-    print("\n===== Gastos por Categoria =====")
-    for gasto in gastos:
-        if gasto['categoria'].strip().lower() == categoria_busca.strip().lower():
-            print(f"{gasto['descricao']} / R$ {gasto['valor']:.2f}")
-            valor_categoria += gasto['valor']
-            encontrados = True
+    if not filtrados:
+        return f"A categoria '{categoria_busca.upper()}' não possui gastos registrados."
+    
+    linhas = [f"📂 *Gastos na categoria {categoria_busca.upper()}:*"]
+    total = 0
+    for gasto in filtrados:
+        linhas.append(f"- {gasto['descricao']} | R$ {gasto['valor']:.2f}")
+        total += gasto['valor']
         
-    if not encontrados:
-        print(f"A categoria {categoria_busca.upper()} ainda não apresenta nenhum gasto!")
-    else:
-        print("========================================")
-        print(f"Subtotal da categoria {categoria_busca.upper()}: R$ {valor_categoria:.2f}")
-        
-def remover_gasto():
-    gastos = carregar_gastos()
-    
-    if not gastos:
-        print("\nNenhum gasto registrado até agora.")
-        return
+    linhas.append("-----------------------------")
+    linhas.append(f"Subtotal: R$ {total:.2f}")
+    return "\n".join(linhas)
 
-    listar_gastos()
+# MUDANÇA 5: Recebe o número/índice por parâmetro direto da mensagem
+def remover_gasto(indice_ou_numero):
+    gastos = carregar_gastos()
+    if not gastos:
+        return "Nenhum gasto registrado para remover."
     
     try:
-        escolha = int(input("\nDigite o número do gasto que deseja remover: "))
-        index = escolha - 1
-
+        index = int(indice_ou_numero) - 1
         if 0 <= index < len(gastos):
             gasto_removido = gastos.pop(index)
             salvar_gastos(gastos)
-            print(f"\nGasto {gasto_removido['descricao'].upper()} removido com sucesso!")
-        
-        else:
-            print("\nNúmero inválido. Tente novamente.")
-    
-    except ValueError:
-        print("\nDigite um número válido!")
+            return f"🗑️ Gasto '{gasto_removido['descricao']}' removido com sucesso!"
+        return "❌ Número fora da lista. Envie um número válido."
+    except (ValueError, TypeError):
+        return "❌ Formato inválido. Envie apenas o número do gasto."
 
-def editar_gasto():
+# MUDANÇA 6: Recebe os novos campos prontos da requisição
+def editar_gasto(indice_ou_numero, nova_desc=None, novo_valor=None, nova_cate=None):
     gastos = carregar_gastos()
-    
     if not gastos:
-        print("\nNenhum gasto registrado até agora.")
-        return
-    
-    listar_gastos()
-    
+        return "Nenhum gasto registrado para editar."
+        
     try:
-        escolha = int(input("\nDigite o número do gasto que deseja alterar: "))
-        index = escolha - 1
-        
-        if 0 <= index < len(gastos):
-            gasto_atual = gastos[index]
+        index = int(indice_ou_numero) - 1
+        if not (0 <= index < len(gastos)):
+            return "❌ Número fora da lista."
             
-            print("\n=====Editando Gasto===== ")
-            print(f"{gasto_atual['descricao']} / R$ {gasto_atual['valor']}")
+        gasto = gastos[index]
+        if nova_desc:
+            gasto['descricao'] = nova_desc.capitalize()
+        if novo_valor is not None:
+            gasto['valor'] = float(novo_valor)
+        if nova_cate:
+            gasto['categoria'] = nova_cate.capitalize()
             
-            nova_desc = input("\nNova descriçao: ").capitalize()
-            if nova_desc:
-                gasto_atual['descricao'] = nova_desc
-            
-            try:
-                novo_valor = float(input("\nNovo valor: R$ "))
-                if novo_valor:
-                    gasto_atual['valor'] = novo_valor
-            except ValueError:
-                print("Valor inválido! O valor antigo será mantido.")
-            
-            nova_cate = input("\nDigite a nova categoria: ").capitalize()
-            if nova_cate:
-                gasto_atual['categoria'] = nova_cate
-                
-            salvar_gastos(gastos)
-            print("Gasto editado com sucesso!")
-    
-        else:
-            print("Número inválido. Tente novamente.")
-        
-    except ValueError:
-        print("Valor inválido. Digite um número!")
-            
+        salvar_gastos(gastos)
+        return f"✏️ Gasto #{indice_ou_numero} atualizado com sucesso!"
+    except (ValueError, TypeError):
+        return "❌ Valor numérico inválido informado para edição."
+
 def gerar_relatorio():
     gastos = carregar_gastos()
-    
     if not gastos:
-        print("\nNenhum gasto registrado até agora.")
-        return
+        return "Nenhum gasto registrado até agora."
     
     nome_arquivo = "relatorio_gastos.txt"
     total = sum(gasto['valor'] for gasto in gastos)
     
     with open(nome_arquivo, "w", encoding="utf-8") as f:
-        f.write("=" * 30 + "\n") #O f.write grava o texto diretamente dentro do arquivo, o print interage com o terminal. Genial
+        f.write("=" * 30 + "\n")
         f.write("      Relatório de Gastos\n")
         f.write("=" * 30 + "\n")
-        
         for i, gasto in enumerate(gastos, 1):
             f.write(f"{i}. {gasto['descricao']} / R${gasto['valor']:.2f} / Categoria: {gasto['categoria']}\n")
-            
         f.write("=" * 30 + "\n")
         f.write(f"Total Geral: {total:.2f}\n")
         f.write("=" * 30 + "\n")
     
-    print(f"Relatório exportado para '{nome_arquivo}'")
-    
+    return f"📄 Relatório gerado com sucesso no servidor como '{nome_arquivo}'!"
+
 def limpar_tela():
     os.system('cls' if os.name == 'nt' else 'clear')
