@@ -1,13 +1,14 @@
 import funcoes
 
 def exibir_menu():
-    print("\n ===GERENCIADOR===")
+    print("\n =====GERENCIADOR=====")
     print("1. Adicionar Gasto.")
     print("2. Listar todo os gastos.")
     print("3. Ver total gasto")
     print("4. Ver total por categoria")
     print("5. Remover gasto")
     print("6. Editar gasto")
+    print("7. Gerar Relatório")
     print("0. Sair")
     print("=============================\n")
     
@@ -36,6 +37,8 @@ def main():
                 funcoes.remover_gasto()
             case "6":
                 funcoes.editar_gasto()
+            case "7":
+                funcoes.gerar_relatorio()
             case "0":
                 print("\nSaindo do programa.")
                 break

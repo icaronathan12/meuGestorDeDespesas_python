@@ -1,0 +1,9 @@
+==============================
+      Relatório de Gastos
+==============================
+1. Carne / R$52.50 / Categoria: Alimento
+2. Celular / R$2300.00 / Categoria: Eletrônicos
+3. Shampoo / R$15.00 / Categoria: Higiene
+==============================
+Total Geral: 2367.50
+==============================

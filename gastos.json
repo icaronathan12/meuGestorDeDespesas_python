@@ -1,10 +1,5 @@
 [
     {
-        "descricao": "Sabonete",
-        "valor": 3.5,
-        "categoria": "Higiene"
-    },
-    {
         "descricao": "Carne",
         "valor": 52.5,
         "categoria": "Alimento"

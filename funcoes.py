@@ -146,4 +146,26 @@ def editar_gasto():
     except ValueError:
         print("Valor inválido. Digite um número!")
             
+def gerar_relatorio():
+    gastos = carregar_gastos()
+    
+    if not gastos:
+        print("\nNenhum gasto registrado até agora.")
+        return
+    
+    nome_arquivo = "relatorio_gastos.txt"
+    total = sum(gasto['valor'] for gasto in gastos)
+    
+    with open(nome_arquivo, "w", encoding="utf-8") as f:
+        f.write("=" * 30 + "\n") #O f.write grava o texto diretamente dentro do arquivo, o print interage com o terminal. Genial
+        f.write("      Relatório de Gastos\n")
+        f.write("=" * 30 + "\n")
+        
+        for i, gasto in enumerate(gastos, 1):
+            f.write(f"{i}. {gasto['descricao']} / R${gasto['valor']:.2f} / Categoria: {gasto['categoria']}\n")
             
+        f.write("=" * 30 + "\n")
+        f.write(f"Total Geral: {total:.2f}\n")
+        f.write("=" * 30 + "\n")
+    
+    print(f"Relatório exportado para '{nome_arquivo}'")
