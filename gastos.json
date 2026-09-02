@@ -1,12 +1,22 @@
 [
     {
         "descricao": "Sabonete",
-        "valor": 2.0,
+        "valor": 3.5,
         "categoria": "Higiene"
     },
     {
         "descricao": "Carne",
         "valor": 52.5,
         "categoria": "Alimento"
+    },
+    {
+        "descricao": "Celular",
+        "valor": 2300.0,
+        "categoria": "Eletrônicos"
+    },
+    {
+        "descricao": "Shampoo",
+        "valor": 15.0,
+        "categoria": "Higiene"
     }
 ]

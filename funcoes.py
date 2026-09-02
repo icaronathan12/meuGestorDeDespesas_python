@@ -103,5 +103,47 @@ def remover_gasto():
     except ValueError:
         print("\nDigite um número válido!")
 
-
+def editar_gasto():
+    gastos = carregar_gastos()
+    
+    if not gastos:
+        print("\nNenhum gasto registrado até agora.")
+        return
+    
+    listar_gastos()
+    
+    try:
+        escolha = int(input("\nDigite o número do gasto que deseja alterar: "))
+        index = escolha - 1
         
+        if 0 <= index < len(gastos):
+            gasto_atual = gastos[index]
+            
+            print("\n=====Editando Gasto===== ")
+            print(f"{gasto_atual['descricao']} / R$ {gasto_atual['valor']}")
+            
+            nova_desc = input("\nNova descriçao: ").capitalize()
+            if nova_desc:
+                gasto_atual['descricao'] = nova_desc
+            
+            try:
+                novo_valor = float(input("\nNovo valor: R$ "))
+                if novo_valor:
+                    gasto_atual['valor'] = novo_valor
+            except ValueError:
+                print("Valor inválido! O valor antigo será mantido.")
+            
+            nova_cate = input("\nDigite a nova categoria: ").capitalize()
+            if nova_cate:
+                gasto_atual['categoria'] = nova_cate
+                
+            salvar_gastos(gastos)
+            print("Gasto editado com sucesso!")
+    
+        else:
+            print("Número inválido. Tente novamente.")
+        
+    except ValueError:
+        print("Valor inválido. Digite um número!")
+            
+            

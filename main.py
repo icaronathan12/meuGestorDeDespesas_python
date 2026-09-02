@@ -7,6 +7,7 @@ def exibir_menu():
     print("3. Ver total gasto")
     print("4. Ver total por categoria")
     print("5. Remover gasto")
+    print("6. Editar gasto")
     print("0. Sair")
     print("=============================\n")
     
@@ -33,6 +34,8 @@ def main():
                 funcoes.total_categoria(categoria)
             case "5":
                 funcoes.remover_gasto()
+            case "6":
+                funcoes.editar_gasto()
             case "0":
                 print("\nSaindo do programa.")
                 break
