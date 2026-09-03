@@ -4,15 +4,15 @@ import funcoes
 
 app = FastAPI(title="API Gerenciador de Gastos")
 
-# Preencha com os dados do painel da Z-API:
+# Credenciais da Z-API
 ZAPI_INSTANCE = "3F8966DFFB28E10E7A06CAAF6523F126"
 ZAPI_TOKEN = "C952EBA8336CD44248E62818"
 ZAPI_URL = f"https://api.z-api.io/instances/{ZAPI_INSTANCE}/token/{ZAPI_TOKEN}/send-text"
 
-def enviar_whatsapp(telefone: str, mensagem: str):
+def enviar_whatsapp(destinatario: str, mensagem: str):
     headers = {"Content-Type": "application/json"}
     payload = {
-        "phone": telefone,
+        "phone": destinatario,
         "message": mensagem
     }
     requests.post(ZAPI_URL, json=payload, headers=headers)
@@ -25,11 +25,30 @@ def status():
 async def webhook_zapi(request: Request):
     dados = await request.json()
 
-    # Ignora status/notificações de envio
+    # Processa apenas se tiver texto e não for notificação de leitura/status
     if not dados.get("isStatusReply") and dados.get("text"):
-        if not dados.get("fromMe", False):
-            telefone = dados.get("phone")
+        is_group = dados.get("isGroup", False)
+        
+        # Só executa se a mensagem vier de um grupo
+        if is_group:
+            # O campo 'phone' no webhook de grupo da Z-API contém o ID do grupo (ex: 120363xxx@g.us)
+            chat_id = dados.get("phone")
             texto = dados.get("text", {}).get("message", "").strip()
+
+            # Trava anti-loop: ignora as mensagens geradas pelo próprio bot no grupo
+            marcadores_bot = [
+                "*PAINEL FINANCEIRO*",
+                "*BALANÇO GERAL*",
+                "*EXTRATO*",
+                "*LANÇAMENTO REGISTRADO*",
+                "*ALTERAÇÃO NO EXTRATO*",
+                "🤖 *COMANDO",
+                "⚠️ *OPS!",
+                "⚠️ *NÚMERO"
+            ]
+            if any(marcador in texto for marcador in marcadores_bot):
+                return {"status": "ignorado_propria_resposta"}
+
             texto_lower = texto.lower()
 
             if texto_lower in ["oi", "ola", "olá", "ajuda", "menu", "start"]:
@@ -121,6 +140,6 @@ async def webhook_zapi(request: Request):
                     "Envie *menu* ou *ajuda* para ver a lista de comandos disponíveis."
                 )
 
-            enviar_whatsapp(telefone, resposta)
+            enviar_whatsapp(chat_id, resposta)
 
     return {"status": "recebido"}
