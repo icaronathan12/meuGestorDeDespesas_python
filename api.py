@@ -7,9 +7,12 @@ app = FastAPI(title="API Gerenciador de Gastos")
 # Credenciais da Z-API
 ZAPI_INSTANCE = "3F8966DFFB28E10E7A06CAAF6523F126"
 ZAPI_TOKEN = "C952EBA8336CD44248E62818"
-ZAPI_CLIENT_TOKEN = "Feb26e90488eb414e906ef4dd367726f0S"  # Token gerado em Segurança > Token de segurança da conta
+ZAPI_CLIENT_TOKEN = "Feb26e90488eb414e906ef4dd367726f0S"
 
 ZAPI_URL = f"https://api.z-api.io/instances/{ZAPI_INSTANCE}/token/{ZAPI_TOKEN}/send-text"
+
+# ID EXCLUSIVO DO SEU GRUPO DE FINANÇAS
+GRUPO_GESTOR_ID = "120363411115478724-group"
 
 def enviar_whatsapp(destinatario: str, mensagem: str):
     headers = {
@@ -30,19 +33,22 @@ def status():
 @app.post("/webhook-zapi")
 async def webhook_zapi(request: Request):
     dados = await request.json()
-    print(">>> DADOS CHEGANDO DA Z-API:", dados)
 
-    # Ignora mensagens enviadas pelo próprio bot/API para não gerar loop infinito
+    # 1. Ignora mensagens enviadas pela própria API (anti-loop)
     if dados.get("fromApi", False):
-        print(">>> Mensagem ignorada (enviada pela própria API)")
         return {"status": "ignorado_propria_api"}
 
-    # Processa se houver mensagem de texto e não for notificação de status/leitura
+    # 2. Processa apenas mensagens de texto reais (ignora notificações de status/leitura)
     if not dados.get("isStatusReply") and dados.get("text"):
         chat_id = dados.get("phone") or dados.get("chatId")
+
+        # 🔒 TRAVA DE SEGURANÇA: ignora mensagens de qualquer outro chat/grupo
+        if chat_id != GRUPO_GESTOR_ID:
+            return {"status": "ignorado_outro_chat"}
+
         texto = dados.get("text", {}).get("message", "").strip()
 
-        # Evita responder mensagens com cabeçalhos emitidos pelo próprio bot
+        # Evita responder aos próprios relatórios e mensagens emitidas pelo bot
         marcadores_bot = [
             "*PAINEL FINANCEIRO*",
             "*BALANÇO GERAL*",
@@ -54,7 +60,6 @@ async def webhook_zapi(request: Request):
             "⚠️ *NÚMERO"
         ]
         if any(marcador in texto for marcador in marcadores_bot):
-            print(">>> Mensagem ignorada (marcador do bot detectado)")
             return {"status": "ignorado_propria_resposta"}
 
         texto_lower = texto.lower()
@@ -119,7 +124,7 @@ async def webhook_zapi(request: Request):
         else:
             resposta = "🤖 Digite *menu* para ver os comandos disponíveis."
 
-        print(f">>> Disparando mensagem de volta para: {chat_id}")
+        print(f">>> Disparando resposta para o grupo: {chat_id}")
         enviar_whatsapp(chat_id, resposta)
 
     return {"status": "recebido"}
