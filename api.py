@@ -4,12 +4,18 @@ import funcoes
 
 app = FastAPI(title="API Gerenciador de Gastos")
 
+# Credenciais da Z-API
 ZAPI_INSTANCE = "3F8966DFFB28E10E7A06CAAF6523F126"
 ZAPI_TOKEN = "C952EBA8336CD44248E62818"
+ZAPI_CLIENT_TOKEN = "Feb26e90488eb414e906ef4dd367726f0S"  # Token gerado em Segurança > Token de segurança da conta
+
 ZAPI_URL = f"https://api.z-api.io/instances/{ZAPI_INSTANCE}/token/{ZAPI_TOKEN}/send-text"
 
 def enviar_whatsapp(destinatario: str, mensagem: str):
-    headers = {"Content-Type": "application/json"}
+    headers = {
+        "Content-Type": "application/json",
+        "Client-Token": ZAPI_CLIENT_TOKEN
+    }
     payload = {
         "phone": destinatario,
         "message": mensagem
@@ -31,12 +37,12 @@ async def webhook_zapi(request: Request):
         print(">>> Mensagem ignorada (enviada pela própria API)")
         return {"status": "ignorado_propria_api"}
 
-    # Verifica se há texto na mensagem recebida
+    # Processa se houver mensagem de texto e não for notificação de status/leitura
     if not dados.get("isStatusReply") and dados.get("text"):
         chat_id = dados.get("phone") or dados.get("chatId")
         texto = dados.get("text", {}).get("message", "").strip()
 
-        # Evita responder as mensagens que contêm cabeçalhos do próprio bot
+        # Evita responder mensagens com cabeçalhos emitidos pelo próprio bot
         marcadores_bot = [
             "*PAINEL FINANCEIRO*",
             "*BALANÇO GERAL*",
@@ -69,9 +75,19 @@ async def webhook_zapi(request: Request):
                 "────────────────────────"
             )
         elif texto_lower == "total":
-            resposta = f"💵 *BALANÇO GERAL* 💵\n────────────────────────\n{funcoes.somar_total()}\n────────────────────────"
+            resposta = (
+                "💵 *BALANÇO GERAL* 💵\n"
+                "────────────────────────\n"
+                f"{funcoes.somar_total()}\n"
+                "────────────────────────"
+            )
         elif texto_lower in ["listar", "gastos"]:
-            resposta = f"📑 *EXTRATO DE LANÇAMENTOS* 📑\n────────────────────────\n{funcoes.listar_gastos()}\n────────────────────────"
+            resposta = (
+                "📑 *EXTRATO DE LANÇAMENTOS* 📑\n"
+                "────────────────────────\n"
+                f"{funcoes.listar_gastos()}\n"
+                "────────────────────────"
+            )
         elif texto_lower.startswith("novo"):
             try:
                 partes = texto[4:].strip().split(",")
@@ -80,19 +96,24 @@ async def webhook_zapi(request: Request):
                 cat = partes[2].strip()
                 funcoes.adicionar_gasto(desc, val, cat)
                 resposta = (
-                    f"✅ *LANÇAMENTO REGISTRADO!* ✨\n"
-                    f"────────────────────────\n"
+                    "✅ *LANÇAMENTO REGISTRADO!* ✨\n"
+                    "────────────────────────\n"
                     f"📝 *Item:* {desc.capitalize()}\n"
                     f"💳 *Valor:* R$ {val:.2f}\n"
                     f"🏷️ *Categoria:* {cat.capitalize()}\n"
-                    f"────────────────────────"
+                    "────────────────────────"
                 )
             except Exception:
                 resposta = "⚠️ *OPS! FORMATO INCORRETO* ⚠️\nUse: `novo Descrição, Valor, Categoria`"
         elif texto_lower.startswith("remover"):
             try:
                 num = int(texto.split()[1])
-                resposta = f"🗑️ *ALTERAÇÃO NO EXTRATO* 🗑️\n────────────────────────\n{funcoes.remover_gasto(num)}\n────────────────────────"
+                resposta = (
+                    "🗑️ *ALTERAÇÃO NO EXTRATO* 🗑️\n"
+                    "────────────────────────\n"
+                    f"{funcoes.remover_gasto(num)}\n"
+                    "────────────────────────"
+                )
             except Exception:
                 resposta = "⚠️ Use o formato: `remover 1`"
         else:
