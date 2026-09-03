@@ -4,57 +4,123 @@ import funcoes
 
 app = FastAPI(title="API Gerenciador de Gastos")
 
-TELEGRAM_TOKEN = "8542743670:AAHnviEyFGGH6N926aD-WL2g2DEu7D6fw0Q"
-TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+# Preencha com os dados do painel da Z-API:
+ZAPI_INSTANCE = "3F8966DFFB28E10E7A06CAAF6523F126"
+ZAPI_TOKEN = "C952EBA8336CD44248E62818"
+ZAPI_URL = f"https://api.z-api.io/instances/{ZAPI_INSTANCE}/token/{ZAPI_TOKEN}/send-text"
 
-def enviar_mensagem_telegram(chat_id, texto):
+def enviar_whatsapp(telefone: str, mensagem: str):
+    headers = {"Content-Type": "application/json"}
     payload = {
-        "chat_id": chat_id,
-        "text": texto,
-        "parse_mode": "Markdown"
+        "phone": telefone,
+        "message": mensagem
     }
-    requests.post(TELEGRAM_API_URL, json=payload)
+    requests.post(ZAPI_URL, json=payload, headers=headers)
 
-@app.post("/telegram")
-async def webhook_telegram(request: Request):
+@app.get("/")
+def status():
+    return {"status": "Online"}
+
+@app.post("/webhook-zapi")
+async def webhook_zapi(request: Request):
     dados = await request.json()
-    
-    # Valida se a requisição contém uma mensagem com texto
-    if "message" in dados and "text" in dados["message"]:
-        chat_id = dados["message"]["chat"]["id"]
-        texto = dados["message"]["text"].strip()
-        texto_lower = texto.lower()
 
-        if texto_lower in ["/start", "oi", "ola", "ajuda"]:
-            resposta = (
-                "🤖 *Gerenciador de Gastos*\n\n"
-                "• `total` -> Ver saldo total\n"
-                "• `listar` -> Exibir todos os gastos\n"
-                "• `novo Descrição, Valor, Categoria` -> Adicionar gasto\n"
-                "• `remover N` -> Remover item pelo número"
-            )
-        elif texto_lower == "total":
-            resposta = funcoes.somar_total()
-        elif texto_lower in ["listar", "gastos"]:
-            resposta = funcoes.listar_gastos()
-        elif texto_lower.startswith("novo"):
-            try:
-                partes = texto[4:].strip().split(",")
-                desc = partes[0].strip()
-                val = float(partes[1].strip())
-                cat = partes[2].strip()
-                resposta = funcoes.adicionar_gasto(desc, val, cat)
-            except Exception:
-                resposta = "❌ Use o formato: `novo Lanche, 25.50, Alimentacao`"
-        elif texto_lower.startswith("remover"):
-            try:
-                num = int(texto.split()[1])
-                resposta = funcoes.remover_gasto(num)
-            except Exception:
-                resposta = "❌ Use o formato: `remover 2`"
-        else:
-            resposta = "Comando não reconhecido. Digite `ajuda` para ver as opções."
+    # Ignora status/notificações de envio
+    if not dados.get("isStatusReply") and dados.get("text"):
+        if not dados.get("fromMe", False):
+            telefone = dados.get("phone")
+            texto = dados.get("text", {}).get("message", "").strip()
+            texto_lower = texto.lower()
 
-        enviar_mensagem_telegram(chat_id, resposta)
+            if texto_lower in ["oi", "ola", "olá", "ajuda", "menu", "start"]:
+                resposta = (
+                    "📊 *PAINEL FINANCEIRO PESSOAL* 📊\n"
+                    "────────────────────────\n"
+                    "Olá! Estou aqui para te ajudar a manter as contas em dia. Veja o que posso fazer:\n\n"
+                    "💰 *total* \n"
+                    "└─ Consulta o valor total de gastos acumulados.\n\n"
+                    "📋 *listar* \n"
+                    "└─ Exibe a lista detalhada com cada lançamento.\n\n"
+                    "➕ *novo <descrição>, <valor>, <categoria>* \n"
+                    "└─ Ex: `novo Uber, 24.90, Transporte`\n\n"
+                    "🗑️ *remover <número>* \n"
+                    "└─ Ex: `remover 3` (apaga o item da posição 3)\n"
+                    "────────────────────────\n"
+                    "💡 _Dica: Digite exatamente os comandos acima para gerenciar._"
+                )
 
-    return {"ok": True}
+            elif texto_lower == "total":
+                resultado = funcoes.somar_total()
+                resposta = (
+                    "💵 *BALANÇO GERAL* 💵\n"
+                    "────────────────────────\n"
+                    f"{resultado}\n"
+                    "────────────────────────"
+                )
+
+            elif texto_lower in ["listar", "gastos"]:
+                resultado = funcoes.listar_gastos()
+                resposta = (
+                    "📑 *EXTRATO DE LANÇAMENTOS* 📑\n"
+                    "────────────────────────\n"
+                    f"{resultado}\n"
+                    "────────────────────────"
+                )
+
+            elif texto_lower.startswith("novo"):
+                try:
+                    partes = texto[4:].strip().split(",")
+                    desc = partes[0].strip()
+                    val = float(partes[1].strip())
+                    cat = partes[2].strip()
+                    
+                    resultado = funcoes.adicionar_gasto(desc, val, cat)
+                    resposta = (
+                        "✅ *LANÇAMENTO REGISTRADO!* ✨\n"
+                        "────────────────────────\n"
+                        f"📝 *Item:* {desc.capitalize()}\n"
+                        f"💳 *Valor:* R$ {val:.2f}\n"
+                        f"🏷️ *Categoria:* {cat.capitalize()}\n"
+                        "────────────────────────\n"
+                        "💾 _Dados salvos com sucesso na planilha!_"
+                    )
+                except Exception:
+                    resposta = (
+                        "⚠️ *OPS! FORMATO INCORRETO* ⚠️\n"
+                        "────────────────────────\n"
+                        "Para registrar um novo gasto, use as vírgulas:\n\n"
+                        "👉 `novo Descrição, Valor, Categoria`\n\n"
+                        "📌 *Exemplo prático:*\n"
+                        "`novo Almoço executivo, 35.00, Alimentação`"
+                    )
+
+            elif texto_lower.startswith("remover"):
+                try:
+                    num = int(texto.split()[1])
+                    resultado = funcoes.remover_gasto(num)
+                    resposta = (
+                        "🗑️ *ALTERAÇÃO NO EXTRATO* 🗑️\n"
+                        "────────────────────────\n"
+                        f"{resultado}\n"
+                        "────────────────────────"
+                    )
+                except Exception:
+                    resposta = (
+                        "⚠️ *NÚMERO NÃO IDENTIFICADO* ⚠️\n"
+                        "────────────────────────\n"
+                        "Envie o comando acompanhado do índice numérico:\n\n"
+                        "👉 `remover 1`\n"
+                        "_(Consulte a lista com *listar* para ver os números)_"
+                    )
+
+            else:
+                resposta = (
+                    "🤖 *COMANDO NÃO RECONHECIDO* 🤔\n"
+                    "────────────────────────\n"
+                    "Não entendi o que você enviou.\n\n"
+                    "Envie *menu* ou *ajuda* para ver a lista de comandos disponíveis."
+                )
+
+            enviar_whatsapp(telefone, resposta)
+
+    return {"status": "recebido"}
